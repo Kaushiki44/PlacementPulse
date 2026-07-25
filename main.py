@@ -4,6 +4,7 @@ import pymysql
 import threading
 from twilio.twiml.messaging_response import MessagingResponse
 from services.email_poller import poll_emails
+from services.whatsapp import send_whatsapp
 from services.subscriber import (
     add_subscriber,
     remove_subscriber,
@@ -56,6 +57,10 @@ def webhook(
     From: str = Form(...),
     Body: str = Form(...)
 ):
+
+    print("From:", From)
+    print("Body:", Body)
+
     # Extract phone number
     phone = From.replace("whatsapp:", "")
 
@@ -100,4 +105,23 @@ def webhook(
             "• STOP - Unsubscribe"
         )
 
-    return str(response)
+    # return str(response)
+    twiml = str(response)
+
+    print("========== TWIML ==========")
+    print(twiml)
+    print("===========================")
+
+    return twiml
+
+
+@app.get("/test-whatsapp")
+def test_whatsapp():
+    send_whatsapp(
+        "+918957042510",
+        "Hello from PlacementPulse 🚀"
+    )
+
+    return {
+        "message": "WhatsApp message sent!"
+    }
