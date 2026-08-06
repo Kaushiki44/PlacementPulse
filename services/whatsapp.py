@@ -11,10 +11,8 @@ twilio_number = os.getenv("TWILIO_WHATSAPP_NUMBER")
 client = Client(account_sid, auth_token)
 
 def send_whatsapp(phone, message):
-    print("Sending to:", phone)
-    print("Message length:", len(message))
-    print("First 200 chars:")
-    print(message[:1200])
+    print(f"📤 Sending WhatsApp to {phone}")
+    
     msg = client.messages.create(
         from_=twilio_number,
         to=f"whatsapp:{phone}",
