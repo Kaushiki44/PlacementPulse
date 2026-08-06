@@ -1,4 +1,4 @@
-from services.gmail import connect_gmail
+from services.gmail import connect_gmail, mark_as_read
 from services.subscriber import get_all_subscribers
 from services.whatsapp import send_whatsapp
 from services.email_filter import is_placement_email
@@ -33,3 +33,5 @@ def poll_emails():
                 subscriber["phone"],
                 message
             )
+        
+        mark_as_read(email_data["id"])

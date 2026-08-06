@@ -162,3 +162,19 @@ def connect_gmail():
         print("❌ Gmail login failed")
         print(e)
         return None
+
+
+def mark_as_read(email_id):
+    try:
+
+        mail = imaplib.IMAP4_SSL("imap.gmail.com")
+        mail.login(EMAIL, EMAIL_PASSWORD)
+        mail.select("INBOX")
+
+        mail.store(email_id, "+FLAGS", "\\Seen")
+
+        print(f"✅ Marked email {email_id} as read.")
+
+    except Exception as e:
+        print("❌ Failed to mark email as read.")
+        print(e)
