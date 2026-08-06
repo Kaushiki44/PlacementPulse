@@ -68,90 +68,95 @@ def connect_gmail():
             return None
 
         ids = messages[0].split()
-        latest = ids[-1]
 
         print(f"Unread emails found: {len(ids)}")
-        print("Latest Email ID:", latest)
 
         # Fetch latest unread email
-        status, data = mail.fetch(latest, "(RFC822)")
+        emails = []
 
-        if status != "OK":
-            print("❌ Failed to fetch email.")
-            return None
+        for email_id in ids:
 
-        msg = email.message_from_bytes(data[0][1])
+            status, data = mail.fetch(email_id, "(RFC822)")
 
-        # Decode subject
-        subject, encoding = decode_header(msg["Subject"])[0]
+            if status != "OK":
+                continue
 
-        if isinstance(subject, bytes):
-            subject = subject.decode(
-                encoding or "utf-8",
-                errors="ignore"
-            )
+            msg = email.message_from_bytes(data[0][1])
 
-        sender = msg["From"]
+            # Decode subject
+            subject, encoding = decode_header(msg["Subject"])[0]
 
-        body = ""
-        plain_body = ""
-        html_body = ""
-
-        if msg.is_multipart():
-
-            for part in msg.walk():
-
-                content_type = part.get_content_type()
-                disposition = str(part.get("Content-Disposition"))
-
-                if (
-                    content_type == "text/plain"
-                    and "attachment" not in disposition.lower()
-                ):
-                    plain_body = part.get_payload(
-                        decode=True
-                    ).decode(errors="ignore")
-
-                elif (
-                    content_type == "text/html"
-                    and "attachment" not in disposition.lower()
-                ):
-                    html_body = part.get_payload(
-                        decode=True
-                    ).decode(errors="ignore")
-
-            # Decide which version to use
-            if plain_body and is_clean_plain_text(plain_body):
-                body = plain_body
-
-            elif html_body:
-                body = clean_email_body(html_body)
-
-            elif plain_body:
-                body = clean_email_body(plain_body)
-
-            else:
-                body = ""
-
-        else:
-            content_type = msg.get_content_type()
-
-            if content_type == "text/html":
-                body = clean_email_body(
-                    msg.get_payload(decode=True).decode(
-                        errors="ignore"
-                    )
+            if isinstance(subject, bytes):
+                subject = subject.decode(
+                    encoding or "utf-8",
+                    errors="ignore"
                 )
-            else:
-                body = msg.get_payload(
-                    decode=True
-                ).decode(errors="ignore")
 
-        return {
-            "subject": subject,
-            "from": sender,
-            "body": body,
-        }
+            sender = msg["From"]
+
+
+            body = ""
+            plain_body = ""
+            html_body = ""
+
+            if msg.is_multipart():
+
+                for part in msg.walk():
+
+                    content_type = part.get_content_type()
+                    disposition = str(part.get("Content-Disposition"))
+
+                    if (
+                        content_type == "text/plain"
+                        and "attachment" not in disposition.lower()
+                    ):
+                        plain_body = part.get_payload(
+                            decode=True
+                        ).decode(errors="ignore")
+
+                    elif (
+                        content_type == "text/html"
+                        and "attachment" not in disposition.lower()
+                    ):
+                        html_body = part.get_payload(
+                            decode=True
+                        ).decode(errors="ignore")
+
+                # Decide which version to use
+                if plain_body and is_clean_plain_text(plain_body):
+                    body = plain_body
+
+                elif html_body:
+                    body = clean_email_body(html_body)
+
+                elif plain_body:
+                    body = clean_email_body(plain_body)
+
+                else:
+                    body = ""
+
+            else:
+                content_type = msg.get_content_type()
+
+                if content_type == "text/html":
+                    body = clean_email_body(
+                        msg.get_payload(decode=True).decode(
+                            errors="ignore"
+                        )
+                    )
+                else:
+                    body = msg.get_payload(
+                        decode=True
+                    ).decode(errors="ignore")
+                
+            emails.append({
+                "id": email_id,
+                "subject": subject,
+                "from": sender,
+                "body": body,
+            })
+
+        return emails
 
     except Exception as e:
         print("❌ Gmail login failed")
