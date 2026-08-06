@@ -2,7 +2,11 @@ from services.gmail import connect_gmail, mark_as_read
 from services.subscriber import get_all_subscribers
 from services.whatsapp import send_whatsapp
 from services.email_filter import is_placement_email
+
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def poll_emails():
@@ -20,11 +24,11 @@ def poll_emails():
                 for email_data in unread_emails:
 
                     if not is_placement_email(email_data):
-                        print("📭 Non-placement email. Skipping...")
+                        logger.info(f"Skipped non-placement email: {email_data['subject']}")
                         mark_as_read(email_data["id"])
                         continue
 
-                    print("✅ Placement email detected.")
+                    logger.info(f"Placement email detected: {email_data['subject']}")
 
                     for subscriber in subscribers:
 
@@ -41,7 +45,7 @@ def poll_emails():
                     mark_as_read(email_data["id"])
 
         except Exception as e:
-            print("❌ Poller error:", e)
+            logger.error(f"Poller error: {e}")
 
-        print("⏳ Checking again in 30 seconds...")
+        logger.info("Checking again in 30 seconds...")
         time.sleep(30)

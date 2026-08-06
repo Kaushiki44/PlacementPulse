@@ -5,8 +5,10 @@ from email.header import decode_header
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 import re
+import logging
 
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 EMAIL = os.getenv("EMAIL")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
@@ -51,7 +53,7 @@ def connect_gmail():
         mail = imaplib.IMAP4_SSL("imap.gmail.com")
         mail.login(EMAIL, EMAIL_PASSWORD)
 
-        print("✅ Gmail login successful")
+        logger.info("Gmail login successful")
 
         # Select Inbox
         mail.select("INBOX")
@@ -60,16 +62,16 @@ def connect_gmail():
         status, messages = mail.search(None, "UNSEEN")
 
         if status != "OK":
-            print("❌ Failed to search emails.")
+            logger.error("Failed to search emails.")
             return None
 
         if messages[0] == b"":
-            print("📭 No unread emails.")
+            logger.info("No unread emails.")
             return None
 
         ids = messages[0].split()
 
-        print(f"Unread emails found: {len(ids)}")
+        logger.info(f"Unread emails found: {len(ids)}")
 
         # Fetch latest unread email
         emails = []
@@ -79,6 +81,7 @@ def connect_gmail():
             status, data = mail.fetch(email_id, "(RFC822)")
 
             if status != "OK":
+                logger.warning(f"Failed to fetch email {email_id}. Skipping.")
                 continue
 
             msg = email.message_from_bytes(data[0][1])
@@ -156,11 +159,12 @@ def connect_gmail():
                 "body": body,
             })
 
+        mail.logout()
         return emails
+        
 
     except Exception as e:
-        print("❌ Gmail login failed")
-        print(e)
+        logger.error(f"Gmail login failed: {e}")
         return None
 
 
@@ -172,9 +176,9 @@ def mark_as_read(email_id):
         mail.select("INBOX")
 
         mail.store(email_id, "+FLAGS", "\\Seen")
+        mail.logout()
 
-        print(f"✅ Marked email {email_id} as read.")
+        logger.info(f"Marked email {email_id} as read.")
 
     except Exception as e:
-        print("❌ Failed to mark email as read.")
-        print(e)
+        logger.error(f"Failed to mark email as read: {e}")
