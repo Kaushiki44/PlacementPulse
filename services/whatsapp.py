@@ -14,7 +14,7 @@ def send_whatsapp(phone, message):
     print("Sending to:", phone)
     print("Message length:", len(message))
     print("First 200 chars:")
-    print(message[:200])
+    print(message[:1200])
     msg = client.messages.create(
         from_=twilio_number,
         to=f"whatsapp:{phone}",
