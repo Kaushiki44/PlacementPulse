@@ -153,17 +153,6 @@ uvicorn main:app --reload
 
 ---
 
-## 🚀 Future Improvements
-
-- Google OAuth integration for individual Gmail accounts.
-- Gmail Push Notifications instead of IMAP polling.
-- Branch-wise eligibility filtering.
-- Admin dashboard for managing subscribers.
-- Docker support and cloud deployment.
-- Web frontend for user registration and account management.
-
----
-
 ## 👩‍💻 Author
 
 **Kaushiki Sahu**
