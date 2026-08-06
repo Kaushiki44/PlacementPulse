@@ -7,31 +7,41 @@ import time
 
 def poll_emails():
 
-    unread_emails = connect_gmail()
+    while True:
 
-    if not unread_emails:
-        return
+        try:
 
-    subscribers = get_all_subscribers()
-    
-    for email_data in unread_emails:
+            unread_emails = connect_gmail()
 
-        if not is_placement_email(email_data):
-            print("📭 Non-placement email. Skipping...")
-            continue
+            if unread_emails:
 
-        print("✅ Placement email detected.")
+                subscribers = get_all_subscribers()
 
-        for subscriber in subscribers:
+                for email_data in unread_emails:
 
-            message = (
-                f"📢 {email_data['subject']}\n\n"
-                f"{email_data['body'][:1200]}"
-            )
+                    if not is_placement_email(email_data):
+                        print("📭 Non-placement email. Skipping...")
+                        mark_as_read(email_data["id"])
+                        continue
 
-            send_whatsapp(
-                subscriber["phone"],
-                message
-            )
-        
-        mark_as_read(email_data["id"])
+                    print("✅ Placement email detected.")
+
+                    for subscriber in subscribers:
+
+                        message = (
+                            f"📢 {email_data['subject']}\n\n"
+                            f"{email_data['body'][:1200]}"
+                        )
+
+                        send_whatsapp(
+                            subscriber["phone"],
+                            message
+                        )
+
+                    mark_as_read(email_data["id"])
+
+        except Exception as e:
+            print("❌ Poller error:", e)
+
+        print("⏳ Checking again in 30 seconds...")
+        time.sleep(30)
